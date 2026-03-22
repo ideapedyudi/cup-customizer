@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🥤 3D Drink Cup Customizer
 
-## Getting Started
+A sleek, modern web application that allows users to customize a 3D drink cup in real-time. Built with Next.js 14, this app features a stunning **Dark Glassmorphism** & **Warm Neon (Orange/Yellow)** aesthetic, complete with an interactive 3D canvas and an AI-powered design generator.
 
-First, run the development server:
+![UI Preview](https://via.placeholder.com/800x400.png?text=3D+Cup+Customizer+Preview)
+
+## ✨ Features
+
+- **Interactive 3D Viewer**: Built with `three.js` & `@react-three/fiber`, users can freely rotate and inspect a high-quality 3D Cup model.
+- **Dynamic Decal Textures**: Upload any image (or `.png` with transparency) and watch it instantly apply as a sticker/sablon wrap on the cup's body.
+- **Dark Glass + Neon Aesthetic**: A premium UI featuring backdrop-blur glassmorphism panels and radiant orange/yellow neon studio lighting reflecting off the cup's glossy surface.
+- **AI Design Generator**: (Integration Ready) Generate stunning prompt-based designs directly through Google's **Gemini API**.
+- **Local Storage Gallery**: Your previous masterpiece designs, including high-res 3D snapshots, are automatically captured and saved locally in a seamless gallery.
+- **Export**: Render the final customized 3D cup into a downloadable 2D image via the "Save & Export" feature.
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS v3](https://tailwindcss.com/) + Custom HSL variables
+- **3D Engine**: [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/) + `@react-three/drei`
+- **Generative AI**: `@google/generative-ai` (Gemini SDK)
+- **Icons**: `lucide-react`
+
+---
+
+## 🚀 Getting Started
+
+Follow these instructions to run the project in your local development environment.
+
+### 1. Prerequisites
+Make sure you have [Node.js](https://nodejs.org/) installed on your machine (v18.0.0 or higher is recommended).
+
+### 2. Installation
+Clone the repository and install the NPM dependencies:
+
+```bash
+# Clone the repository (if applicable)
+# git clone <repository-url>
+
+# Navigate into the directory
+cd cup-customizer
+
+# Install dependencies
+npm install
+```
+
+### 3. Environment Variables
+To fully utilize the **AI Design Generator** feature, you need a Google Gemini API Key.
+Create a new file called `.env.local` in the root of your project and inject your key:
+
+```env
+NEXT_PUBLIC_GEMINI_API_KEY="your_google_gemini_api_key_here"
+```
+*(You can get a free API key from [Google AI Studio](https://aistudio.google.com/)).*
+
+### 4. Run the Development Server
+Fire up the Next.js local development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 5. Open the App
+Visit [http://localhost:3000](http://localhost:3000) in your browser. 
+- Try dragging your mouse over the cup to view it from all angles (the cursor will automatically change to a pointer).
+- Click **Upload Image** to stick a custom printed logo onto your cup!
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📜 License
+This project was built as a creative prototype. Feel free to modify and adapt it to your own personal or commercial projects.
