@@ -1,7 +1,7 @@
 import { OpenRouter } from '@openrouter/sdk';
 
 export const generateDesignPrompt = async (userInput: string): Promise<string> => {
-  const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new Error('OpenRouter API key is not configured. Please set NEXT_PUBLIC_OPENROUTER_API_KEY in your .env.local file.');
   }
@@ -17,7 +17,7 @@ export const generateDesignPrompt = async (userInput: string): Promise<string> =
       httpReferer: "http://localhost:3000",
       xTitle: "Cup Customizer",
       chatGenerationParams: {
-        model: "sourceful/riverflow-v2-pro",
+        model: process.env.OPENROUTER_MODEL || "sourceful/riverflow-v2-pro",
         messages: [
           {
             role: "user",
@@ -33,13 +33,11 @@ export const generateDesignPrompt = async (userInput: string): Promise<string> =
     }
 
     const message = response.choices[0].message as any;
-
-    // 1. Deteksi native `images` array (format baru OpenRouter seperti sourceful/riverflow-v2-pro)
     if (message.images && Array.isArray(message.images) && message.images.length > 0) {
       const directImageUrl = message.images[0].imageUrl?.url || message.images[0].url;
       if (directImageUrl) {
         console.log("Found direct image in message.images!");
-        return directImageUrl; // Ini akan mengembalikan data:image/png;base64 secara langsung!
+        return directImageUrl;
       }
     }
 
