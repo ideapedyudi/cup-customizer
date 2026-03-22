@@ -25,7 +25,7 @@ export default function Home() {
   const [histories, setHistories] = useState<HistoryItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingSaveType, setPendingSaveType] = useState<'upload' | 'ai' | null>(null);
-  const [prompt, setPrompt] = useState('');
+  const [designPrompt, setDesignPrompt] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -137,12 +137,12 @@ export default function Home() {
   };
 
   const handleGenerateDesign = async () => {
-    if (!prompt.trim()) return;
+    if (!designPrompt.trim()) return;
     setIsProcessing(true);
     try {
       // Dynamically importing to not break SSR or cause initial bundle bloat
       const { generateDesignPrompt } = await import('@/lib/openrouter');
-      const generatedImageUrl = await generateDesignPrompt(prompt);
+      const generatedImageUrl = await generateDesignPrompt(designPrompt);
 
       setPendingSaveType('ai');
       setTextureUrl(generatedImageUrl);
@@ -176,8 +176,8 @@ export default function Home() {
             <Wand2 className="w-4 h-4" /> AI Generator
           </h2>
           <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            value={designPrompt}
+            onChange={(e) => setDesignPrompt(e.target.value)}
             disabled={isProcessing}
             className="w-full p-4 bg-black/30 border border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none transition-all placeholder:text-slate-600 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)] text-slate-200"
             rows={3}
@@ -185,7 +185,7 @@ export default function Home() {
           />
           <Button
             onClick={handleGenerateDesign}
-            disabled={isProcessing || !prompt.trim()}
+            disabled={isProcessing || !designPrompt.trim()}
             className="w-full bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] border-none rounded-lg h-11"
           >
             {isProcessing && pendingSaveType === 'ai' ? 'Generating...' : 'Generate Design'}

@@ -20,6 +20,11 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Cup Customizer",
   description: "Create and design your customized cups in 3D using AI.",
+  icons: {
+    icon: "/favicon.ico?v=2",
+    shortcut: "/favicon.ico?v=2",
+    apple: "/favicon.ico?v=2",
+  },
 };
 
 export default function RootLayout({
