@@ -2,7 +2,7 @@
 
 A sleek, modern web application that allows users to customize a 3D drink cup in real-time. Built with Next.js 14, this app features a stunning **Dark Glassmorphism** & **Warm Neon (Orange/Yellow)** aesthetic, complete with an interactive 3D canvas and an AI-powered design generator.
 
-![UI Preview](https://via.placeholder.com/800x400.png?text=3D+Cup+Customizer+Preview)
+![UI Preview](https://github.com/ideapedyudi/cup-customizer/blob/master/src/images/preview.png?raw=true)
 
 ## ✨ Features
 
