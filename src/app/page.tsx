@@ -30,7 +30,7 @@ export default function Home() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load from IndexedDB on mount (Aman untuk string Base64 yang raksasa)
+  // Load from IndexedDB on mount (Safe for giant Base64 strings)
   useEffect(() => {
     const loadHistory = async () => {
       try {
@@ -58,9 +58,9 @@ export default function Home() {
     }
   }, [histories, isLoaded]);
 
-  // Hapus dari state (dan otomatis disinkronkan ke IndexedDB oleh useEffect di atas)
+  // Remove from state (and automatically synced to IndexedDB by the useEffect above)
   const handleDeleteHistory = (e: React.MouseEvent, idToRemove: string) => {
-    e.stopPropagation(); // Mencegah apply history terpicu ketika memencet X
+    e.stopPropagation(); // Prevents apply history from being triggered when clicking X
     setHistories(prev => prev.filter(item => item.id !== idToRemove));
   };
 
@@ -220,7 +220,7 @@ export default function Home() {
                   <button 
                     onClick={(e) => handleDeleteHistory(e, item.id)}
                     className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all z-10 duration-200"
-                    title="Hapus Desain"
+                    title="Delete Design"
                   >
                     <X className="w-4 h-4" />
                   </button>

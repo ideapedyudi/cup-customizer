@@ -82,7 +82,7 @@ function Cup({ textureUrl, onTextureLoaded }: CupProps) {
         )}
       </mesh>
 
-      {/* --- Cup Lid (Tutup Cup) --- */}
+      {/* --- Cup Lid --- */}
       <mesh castShadow receiveShadow position={[0, 2.6, 0]}>
         <cylinderGeometry args={[2.05, 2.05, 0.4, 32]} />
         <meshStandardMaterial 

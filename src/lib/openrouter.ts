@@ -12,7 +12,7 @@ export const generateDesignPrompt = async (userInput: string): Promise<string> =
   try {
     const openRouter = new OpenRouter({ apiKey });
 
-    // Panggil SDK resmi @openrouter/sdk sesuai tipe datanya
+    // Call the official @openrouter/sdk according to its data type
     const response = await openRouter.chat.send({
       httpReferer: "http://localhost:3000",
       xTitle: "Cup Customizer",
@@ -27,9 +27,9 @@ export const generateDesignPrompt = async (userInput: string): Promise<string> =
       }
     });
 
-    // Validasi respons
+    // Validate response
     if (!response || !response.choices || response.choices.length === 0) {
-      throw new Error("OpenRouter mengembalikan respons kosong atau terjadi kesalahan jaringan.");
+      throw new Error("OpenRouter returned an empty response or a network error occurred.");
     }
 
     const message = response.choices[0].message as any;
@@ -45,7 +45,7 @@ export const generateDesignPrompt = async (userInput: string): Promise<string> =
     let contentString = "";
     let extractedUrl = "";
 
-    // 2. OpenRouter standar: konten array berisi objek image_url
+    // 2. Standard OpenRouter: array content containing image_url objects
     if (Array.isArray(messageContent)) {
       for (const part of messageContent as any[]) {
         if (part.type === "image_url" && part.image_url?.url) {
@@ -60,20 +60,20 @@ export const generateDesignPrompt = async (userInput: string): Promise<string> =
 
     if (extractedUrl) return extractedUrl;
 
-    // Safety Fallback jika tidak ada gambar dan cuman string kosong
+    // Safety Fallback if no image and only empty string
     if (!contentString || contentString.trim() === "") {
       console.error("DEBUG OpenRouter Raw Response:", JSON.stringify(response, null, 2));
-      throw new Error(`OpenRouter membalas dengan format yang tidak dikenali atau kosong. Periksa log konsol untuk detail payload.`);
+      throw new Error(`OpenRouter responded with unrecognized format or empty. Check the console log for payload details.`);
     }
 
-    // 3. Deteksi Base64 mentah
+    // 3. Raw Base64 detection
     const isRawBase64 = contentString.length > 500 && !contentString.includes(' ');
     if (isRawBase64) {
       if (contentString.startsWith('data:image')) return contentString;
       return `data:image/png;base64,${contentString}`;
     }
 
-    // 4. Deteksi URL atau Base64 ber-header di dalam teks Markdown
+    // 4. Detect URL or headered Base64 within Markdown text
     const markdownImgRegex = /!\[.*?\]\((https?:\/\/[^\s)]+)\)/;
     const rawUrlRegex = /(https?:\/\/[^\s)]+)/;
     const base64Regex = /(data:image\/[a-zA-Z]+;base64,[^\s"']+)/;
@@ -87,11 +87,11 @@ export const generateDesignPrompt = async (userInput: string): Promise<string> =
     const rawMatch = contentString.match(rawUrlRegex);
     if (rawMatch && rawMatch[0]) return rawMatch[0];
 
-    // Jika semua blok deteksi gagal menangkap format gambar/URL/Base64
-    throw new Error("OpenRouter tidak mengembalikan gambar murni. Model ini mungkin salah di-konfigurasi atau hanya mereturn teks biasa.");
+    // If all detection blocks fail to capture the image/URL/Base64 format
+    throw new Error("OpenRouter did not return a pure image. This model might be misconfigured or only return plain text.");
 
   } catch (error) {
-    console.error('Error menggunakan @openrouter/sdk:', error);
+    console.error('Error using @openrouter/sdk:', error);
     throw error;
   }
 };
