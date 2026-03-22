@@ -3,7 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
-import { Upload, Download, Wand2 } from 'lucide-react';
+import { Upload, Download, Wand2, X } from 'lucide-react';
+import { get, set } from 'idb-keyval';
 
 // We import CupScene dynamically because it uses browser APIs (three.js) 
 // that might fail during SSR
@@ -24,25 +25,44 @@ export default function Home() {
   const [histories, setHistories] = useState<HistoryItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingSaveType, setPendingSaveType] = useState<'upload' | 'ai' | null>(null);
+  const [prompt, setPrompt] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load from local storage on mount
+  // Load from IndexedDB on mount (Aman untuk string Base64 yang raksasa)
   useEffect(() => {
-    const saved = localStorage.getItem('cup_histories');
-    if (saved) {
+    const loadHistory = async () => {
       try {
-        setHistories(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse history', e);
+        const saved = await get<HistoryItem[]>('cup_histories');
+        if (saved && Array.isArray(saved)) {
+          setHistories(saved);
+        }
+      } catch (err) {
+        console.error('Failed to load histories from IndexedDB:', err);
+      } finally {
+        setIsLoaded(true);
       }
-    }
+    };
+    loadHistory();
   }, []);
 
-  // Sync to local storage when histories change
+  // Sync to IndexedDB when histories change
   useEffect(() => {
-    localStorage.setItem('cup_histories', JSON.stringify(histories));
-  }, [histories]);
+    // CRITICAL: Only sync if isLoaded is true. 
+    // This prevents the empty initial state [] from overwriting 
+    // existing data in IndexedDB before it has been fetched.
+    if (isLoaded) {
+      set('cup_histories', histories)
+        .catch(err => console.error('Failed saving to IndexedDB', err));
+    }
+  }, [histories, isLoaded]);
+
+  // Hapus dari state (dan otomatis disinkronkan ke IndexedDB oleh useEffect di atas)
+  const handleDeleteHistory = (e: React.MouseEvent, idToRemove: string) => {
+    e.stopPropagation(); // Mencegah apply history terpicu ketika memencet X
+    setHistories(prev => prev.filter(item => item.id !== idToRemove));
+  };
 
   const captureScreenshot = (): string | null => {
     const canvas = document.querySelector('canvas');
@@ -67,6 +87,11 @@ export default function Home() {
       setTextureUrl(rawUrl);
       setPendingSaveType('upload');
       setIsProcessing(true);
+      if (event.target?.result) {
+        setPendingSaveType('upload');
+        setTextureUrl(event.target.result as string);
+        // Processing overlay will be dismissed when texture fully loads in canvas
+      }
     };
     reader.readAsDataURL(file);
     e.target.value = ''; // Reset input
@@ -75,37 +100,58 @@ export default function Home() {
   // Called defensively when Cup texture is done painting
   const handleTextureLoaded = () => {
     if (pendingSaveType && textureUrl) {
-      // Small delay extra-ensures the renderer has committed the frame
+      // Small timeout ensures the frame has actually rendered the new texture
       setTimeout(() => {
-        const screenshot = captureScreenshot();
+        const screenshotUrl = captureScreenshot();
         const newItem: HistoryItem = {
           id: Date.now().toString(),
           url: textureUrl,
-          screenshotUrl: screenshot || textureUrl,
-          type: pendingSaveType,
+          screenshotUrl: screenshotUrl || textureUrl, // fallback to original if capture fails
+          type: pendingSaveType
         };
-        // Prepend to show newest first
-        setHistories((prev) => [newItem, ...prev]);
+
+        setHistories(prev => [newItem, ...prev]);
         setPendingSaveType(null);
         setIsProcessing(false);
-      }, 200);
+      }, 500); // 500ms allows OrbitControls to reset and render the scene beautifully
     }
   };
 
   const handleSaveExport = () => {
-    const screenshot = captureScreenshot();
-    if (screenshot) {
+    const screenshotUrl = captureScreenshot();
+    if (screenshotUrl) {
       const link = document.createElement('a');
-      link.href = screenshot;
       link.download = `cup-design-${Date.now()}.png`;
+      link.href = screenshotUrl;
       link.click();
     }
   };
 
   const applyHistory = (item: HistoryItem) => {
-    // When applying from history, we just view it, don't re-save.
-    setPendingSaveType(null);
+    // When applying a past design, don't trigger the "save screenshot" logic again.
+    setIsProcessing(true);
+    setPendingSaveType(null); // Explicitly null to skip saving loop
     setTextureUrl(item.url);
+    // Remove processing overlay manually since it's an existing item
+    setTimeout(() => setIsProcessing(false), 500);
+  };
+
+  const handleGenerateDesign = async () => {
+    if (!prompt.trim()) return;
+    setIsProcessing(true);
+    try {
+      // Dynamically importing to not break SSR or cause initial bundle bloat
+      const { generateDesignPrompt } = await import('@/lib/openrouter');
+      const generatedImageUrl = await generateDesignPrompt(prompt);
+
+      setPendingSaveType('ai');
+      setTextureUrl(generatedImageUrl);
+      // isProcessing will be unset by the handleTextureLoaded callback
+    } catch (error) {
+      console.error('Failed to generate design:', error);
+      alert('Failed to generate design. Ensure API key is valid.');
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -130,12 +176,19 @@ export default function Home() {
             <Wand2 className="w-4 h-4" /> AI Generator
           </h2>
           <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            disabled={isProcessing}
             className="w-full p-4 bg-black/30 border border-white/10 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none transition-all placeholder:text-slate-600 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)] text-slate-200"
             rows={3}
             placeholder="E.g. Vintage floral pattern with pastel colors..."
           />
-          <Button className="w-full bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] border-none rounded-lg h-11">
-            Generate Design
+          <Button
+            onClick={handleGenerateDesign}
+            disabled={isProcessing || !prompt.trim()}
+            className="w-full bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] border-none rounded-lg h-11"
+          >
+            {isProcessing && pendingSaveType === 'ai' ? 'Generating...' : 'Generate Design'}
           </Button>
         </div>
 
@@ -163,7 +216,15 @@ export default function Home() {
                     alt="Design screenshot"
                     className="w-full h-full object-cover group-hover:scale-110 group-hover:rotate-2 transition-all duration-500 ease-out opacity-80 group-hover:opacity-100"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-end pb-3 text-orange-50 text-xs font-bold drop-shadow-md">
+                  {/* Delete Button (X) */}
+                  <button 
+                    onClick={(e) => handleDeleteHistory(e, item.id)}
+                    className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all z-10 duration-200"
+                    title="Hapus Desain"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-end pb-3 text-orange-50 text-xs font-bold drop-shadow-md pointer-events-none">
                     <span className="capitalize tracking-wider">{item.type}</span>
                   </div>
                 </div>
@@ -191,7 +252,7 @@ export default function Home() {
             ref={fileInputRef}
             onChange={handleFileChange}
             className="hidden"
-            accept="image/*"
+            accept="image/png"
           />
           <Button
             variant="outline"

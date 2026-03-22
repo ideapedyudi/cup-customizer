@@ -1,29 +1,14 @@
-# Project: 3D Drink Cup Customizer
+# Project: 3D Drink Cup Customizer (AI Updates)
 
-## Tech Stack
-- Framework: Next.js 14 (App Router)
-- Styling: Tailwind CSS + shadcn/ui
-- style nya dark terdapat efek glass dan neon dengan warna campuran orange lebih banyak dan kuning
-- 3D Engine: React Three Fiber (Three.js)
-- AI Integration: Google Gemini API (untuk generate desain sablon)
-- Storage: Browser LocalStorage (untuk riwayat gambar)
+## AI Generation Architecture
+We have completely transitioned the image generation mechanism from the native Google Gen AI libraries to the universal **OpenRouter API**.
 
-## Fitur Utama
-1. **3D Viewer**: Menampilkan model 3D Cup (Bisa menggunakan silinder dasar jika file .glb belum ada).
-2. **Texture Mapping**: Gambar yang di-upload atau di-generate harus ditempelkan sebagai texture pada bagian badan cup.
-3. **AI Generator**: Input teks untuk generate gambar via Gemini API, lalu hasilnya muncul di Cup.
-4. **Image Gallery**: Sidebar yang menampilkan list gambar dari LocalStorage.
-5. **Advanced Save**: Saat user mengupload gambar baru, sistem harus mengambil screenshot dari canvas 3D (hasil tempelan sablon) dan menyimpannya bersamaan dengan data gambar asli ke LocalStorage.
-6. **Posisi Gambar**: buatkan gambar hanya 1 aja di bagian samping itu dan langsung fokus ke bagian gambar saat gambar di perbaruai dari upload atau generate ai.
+### AI Core
+- **API Provider**: OpenRouter (`https://openrouter.ai/api/v1/chat/completions`)
+- **Selected Model**: `google/gemini-3.1-flash-image-preview`
+- **Mechanism**: The Text-to-Image request is funneled through OpenRouter's proxy which interfaces with Gemini 3.1 Flash Image preview. The returned string payload is regex-parsed on our client to extract the generated image source automatically.
+- **Environment Requirement**: `NEXT_PUBLIC_OPENROUTER_API_KEY` defined inside `.env.local`
 
-## Aturan Coding (Agent Rules)
-- Gunakan TypeScript untuk semua komponen.
-- Gunakan `lucide-react` untuk ikon.
-- Komponen UI harus mengambil dari `@/components/ui` (shadcn).
-- Pisahkan logika 3D ke dalam komponen `CupScene.tsx`.
-- Simpan history gambar dalam array of objects: `{ id, url, type: 'upload' | 'ai' }`.
-
-## Struktur Folder
-- `/components/canvas` -> Komponen Three.js
-- `/components/ui` -> Komponen shadcn
-- `/lib/gemini.ts` -> Konfigurasi Google AI SDK
+### Core Changes
+- Removed dependencies on `@google/genai` or `@google/generative-ai`.
+- `gemini.ts` was repurposed into an generic external `fetch` abstraction that parses OpenRouter outputs.

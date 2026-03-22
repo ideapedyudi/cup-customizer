@@ -42,7 +42,10 @@ function TexturedMaterial({
         map={texture}
         polygonOffset
         polygonOffsetFactor={-1}
-        transparent
+        transparent={true}
+        // alphaTest={0.01} prevents the transparent parts from blocking other meshes 
+        // while allowing true PNG alpha to shine through without darkening from MultiplyBlending
+        alphaTest={0.01}
         roughness={0.4}
         metalness={0.1}
         depthTest={true}

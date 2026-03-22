@@ -18,7 +18,7 @@ A sleek, modern web application that allows users to customize a 3D drink cup in
 - **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
 - **Styling**: [Tailwind CSS v3](https://tailwindcss.com/) + Custom HSL variables
 - **3D Engine**: [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/) + `@react-three/drei`
-- **Generative AI**: `@google/generative-ai` (Gemini SDK)
+- **Generative AI**: OpenRouter API (`google/gemini-3.1-flash-image-preview`)
 - **Icons**: `lucide-react`
 
 ---
@@ -45,13 +45,13 @@ npm install
 ```
 
 ### 3. Environment Variables
-To fully utilize the **AI Design Generator** feature, you need a Google Gemini API Key.
+To fully utilize the **AI Design Generator** feature, you need an OpenRouter API Key.
 Create a new file called `.env.local` in the root of your project and inject your key:
 
 ```env
-NEXT_PUBLIC_GEMINI_API_KEY="your_google_gemini_api_key_here"
+NEXT_PUBLIC_OPENROUTER_API_KEY="your_openrouter_api_key_here"
 ```
-*(You can get a free API key from [Google AI Studio](https://aistudio.google.com/)).*
+*(You can get your API key from [OpenRouter.ai](https://openrouter.ai/)).*
 
 ### 4. Run the Development Server
 Fire up the Next.js local development server:
